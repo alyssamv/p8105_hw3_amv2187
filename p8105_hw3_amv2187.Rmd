@@ -1,0 +1,43 @@
+---
+title: "p8105_hw3_amv2187"
+author: "Alyssa Vanderbeek (amv2187)"
+date: "15 October 2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(p8105.datasets)
+library(tidyverse)
+
+getwd()
+```
+
+
+## Problem 1
+
+```{r}
+data("brfss_smart2010") 
+
+brfss_cleaned = brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  filter(topic == 'Overall Health') 
+
+str(brfss_cleaned)
+```
+
+
+## Problem 2
+
+```{r}
+data("instacart")
+```
+
+
+## Problem 3
+
+```{r}
+data("ny_noaa")
+```
+
