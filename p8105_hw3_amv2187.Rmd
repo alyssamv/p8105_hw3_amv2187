@@ -82,7 +82,8 @@ brfss_cleaned %>%
     y = 'Average proportion of responses',
     x = 'Year'
   ) + 
-  theme(axis.text.x = element_text(angle = 60, hjust = 1)) # spread out legend??
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  guides(colour = guide_legend(nrow = 4, byrow = T)) 
 
 ```
 
