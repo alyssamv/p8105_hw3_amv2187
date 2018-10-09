@@ -33,19 +33,19 @@ brfss_cleaned = brfss_smart2010 %>%
 str(brfss_cleaned)
 ```
 
+
 ```{r}
 # Which states were observed at 7 locations in 2002?
 brfss_cleaned %>%
   filter(year == 2002) %>%  # filter to only listings in 2002
-  select(state, county) %>%  # select only state and county variables
-  distinct() %>% # get distinct counties
+  distinct(state, county) %>%  # select distinct state and county variables
   group_by(state) %>% # get distinct locations
   filter(n() == 7) %>%  # state listings that have exactly 7 counties listed
   distinct(state) # get states
 
+# Make a “spaghetti plot” that shows the number of locations in each state from 2002 to 2010.
 brfss_cleaned %>%
-  select(state, county, year) %>%
-  distinct() %>%
+  distinct(state, county, year) %>%
   count(state, year) %>%
   ggplot(aes(x = year, y = n, color = state)) +
   geom_line(alpha = 0.6) + 
@@ -57,6 +57,22 @@ brfss_cleaned %>%
   ) +
   theme(legend.position = 'right')
   # geom_smooth(method = 'loess', se = F, alpha = 0.5)
+
+
+# Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.
+brfss_cleaned %>%
+  filter(year %in% c(2002, 2006, 2010) & 
+         response == 'Excellent' & 
+         state == 'NY') %>% 
+  group_by(year) %>%
+  summarise(Average = mean(data_value), 
+            'Std Dev' = sd(data_value)) %>%
+  knitr::kable(caption = 'Proportion of "Excellent" responses in NY state' )
+
+
+# For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.
+
+
 ```
 
 
