@@ -139,6 +139,13 @@ instacart %>%
   group_by(aisle) %>%
   slice(n()) %>%
   knitr::kable()
+
+instacart %>%
+  filter(product_name %in% c('Pink Lady Apples', 'Coffee Ice Cream')) %>%
+  group_by(order_dow) %>%
+  rename('Day of the week' = order_dow) %>%
+  summarise('Average hour of purchase' = round(mean(order_hour_of_day))) %>%
+  knitr::kable(caption = 'Average time of purchase of Pink Lady apples and coffee ice cream')
 ```
 
 ## Problem 3
