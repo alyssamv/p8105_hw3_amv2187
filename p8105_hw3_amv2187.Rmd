@@ -88,12 +88,56 @@ brfss_cleaned %>%
 ```
 
 
+
 ## Problem 2
 
 ```{r}
 data("instacart")
+#View(instacart[1:100,])
+
 ```
 
+What are the average/median/maximum number of items purchased by people?
+On what day(s) of the week are the most items purchased? The least?
+What types of food are purchased most often?
+Is there an association between the number of items a person purchased and the number of prior visits they've made?
+Is there a pattern that is commonly followed in the store? (i.e. an association between a product's aisle and order of addition to cart)
+At what time of day do most orders take place?
+
+```{r}
+aisles = instacart %>%
+  group_by(aisle, aisle_id, department, department_id) %>%
+  count %>%
+  arrange(department, n)
+  
+nrow(aisles)
+
+aisles %>%
+  filter(n == max(.$n))
+
+instacart %>%
+  group_by(aisle) %>%
+  count
+  
+ggplot(aisles, aes(x = aisle, y = n, color = department)) +
+  geom_point(stat = 'identity') +
+  facet_wrap(.~department, scales = 'free') +
+  labs(
+    title = 'Number of items purchased across aisles',
+    x = 'Aisle'
+  ) +
+  #scale_y_continuous(limits = c(0, 50000)) +
+  #scale_x_discrete(limits = aisles$aisle) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = 'none')
+```
+
+```{r}
+items = instacart %>%
+  group_by(product_name, aisle) %>%
+  count %>%
+  arrange(aisle)
+```
 
 ## Problem 3
 
