@@ -110,6 +110,7 @@ aisles = instacart %>%
   count %>%
   arrange(department, n)
   
+  
 nrow(aisles)
 
 aisles %>%
@@ -118,17 +119,25 @@ aisles %>%
 instacart %>%
   group_by(aisle) %>%
   count
-  
-ggplot(aisles, aes(x = aisle, y = n, color = department)) +
+```  
+
+```{r fig.height=12, fig.width=4}
+aisles %>%
+  ungroup %>%
+  filter(!(aisle %in% c('missing', 'other'))) %>%
+  mutate(aisle_id = as.character(aisle_id)) %>%
+  ggplot(aes(y = aisle, x = log(n), color = department)) +
   geom_point(stat = 'identity') +
-  facet_wrap(.~department, scales = 'free') +
+  facet_grid(department ~ ., scales = 'free', space = 'free') +
   labs(
     title = 'Number of items purchased across aisles',
-    x = 'Aisle'
+    x = 'Number of items (logarithmic scale)',
+    y = 'Aisle'
   ) +
   #scale_y_continuous(limits = c(0, 50000)) +
-  #scale_x_discrete(limits = aisles$aisle) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+  #scale_y_discrete(limits = rev(aisles$aisle)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        text = element_text(size = 8),
         legend.position = 'none')
 ```
 
