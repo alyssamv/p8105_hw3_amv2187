@@ -13,8 +13,7 @@ library(tidyverse)
 
 getwd()
 
-theme_set(theme_bw() + 
-            theme(legend.position = "bottom"))
+theme_set(theme_bw())
 ```
 
 
@@ -82,7 +81,8 @@ brfss_cleaned %>%
     y = 'Average proportion of responses',
     x = 'Year'
   ) + 
-  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1),
+        legend.position = "bottom") +
   guides(colour = guide_legend(nrow = 4, byrow = T)) 
 
 ```
@@ -93,7 +93,6 @@ brfss_cleaned %>%
 
 ```{r}
 data("instacart")
-#View(instacart[1:100,])
 
 ```
 
@@ -109,16 +108,8 @@ aisles = instacart %>%
   group_by(aisle, aisle_id, department, department_id) %>%
   count %>%
   arrange(department, n)
-  
-  
-nrow(aisles)
 
-aisles %>%
-  filter(n == max(.$n))
-
-instacart %>%
-  group_by(aisle) %>%
-  count
+aisles %>% filter(n == max(.$n))
 ```  
 
 ```{r fig.height=12, fig.width=4}
@@ -134,18 +125,20 @@ aisles %>%
     x = 'Number of items (logarithmic scale)',
     y = 'Aisle'
   ) +
-  #scale_y_continuous(limits = c(0, 50000)) +
-  #scale_y_discrete(limits = rev(aisles$aisle)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         text = element_text(size = 8),
         legend.position = 'none')
 ```
 
 ```{r}
-items = instacart %>%
-  group_by(product_name, aisle) %>%
+instacart %>%
+  filter(aisle %in% c('baking ingredients', 'dog food care', 'packaged vegetables fruits')) %>%
+  group_by(aisle, product_name) %>%
   count %>%
-  arrange(aisle)
+  arrange(aisle, n) %>%
+  group_by(aisle) %>%
+  slice(n()) %>%
+  knitr::kable()
 ```
 
 ## Problem 3
