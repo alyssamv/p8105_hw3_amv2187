@@ -105,29 +105,27 @@ At what time of day do most orders take place?
 
 ```{r}
 aisles = instacart %>%
-  group_by(aisle, aisle_id, department, department_id) %>%
+  group_by(aisle, department) %>%
   count %>%
   arrange(department, n)
 
 aisles %>% filter(n == max(.$n))
 ```  
 
-```{r fig.height=12, fig.width=4}
+```{r fig.height=12, fig.width=6}
 aisles %>%
-  ungroup %>%
   filter(!(aisle %in% c('missing', 'other'))) %>%
-  mutate(aisle_id = as.character(aisle_id)) %>%
   ggplot(aes(y = aisle, x = log(n), color = department)) +
-  geom_point(stat = 'identity') +
-  facet_grid(department ~ ., scales = 'free', space = 'free') +
-  labs(
-    title = 'Number of items purchased across aisles',
+  geom_point() +
+  facet_grid(department ~ ., scales = 'free', space = 'free') + # facet by department
+  labs( # set labels
+    title = 'Number of items purchased across aisles, by department',
     x = 'Number of items (logarithmic scale)',
     y = 'Aisle'
   ) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        text = element_text(size = 8),
-        legend.position = 'none')
+  theme(text = element_text(size = 8), # make text small enough to be non-overlapping
+        legend.position = 'none', # no legend (not necessary with facet_grid)
+        strip.text.y = element_text(size = 8, angle = 0)) # make face_grid titles horizontal so they are legible
 ```
 
 ```{r}
