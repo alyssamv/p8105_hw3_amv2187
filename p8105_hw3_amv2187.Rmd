@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 
 library(p8105.datasets)
 library(tidyverse)
+library(patchwork)
 
 getwd()
 
@@ -189,6 +190,35 @@ ny_noaa_cleaned %>%
   theme(axis.text.x = element_text(angle = 60, hjust = 1),
         legend.position = 'none') # no legend (not necessary with facet_grid)
 
-  
+
+max_v_min = 
+  ggplot(ny_noaa_cleaned, aes(x = tmin, y = tmax)) +
+    geom_hex() +
+    scale_y_continuous(limits = c(-60, 60)) + # set y-axis range to match x-axis range
+    labs( # set labels
+      title = 'Daily temperature 1980-2010',
+      x = 'Minimum temperature (Celsius)',
+      y = 'Maximum temperature (Celsius)'
+    ) + 
+    theme(legend.position = c(1, 0),
+          legend.justification = c(1.1, -0.1),
+          legend.background = element_rect(color = "black", size = 0.2, linetype = "solid"),
+          legend.key.size = unit(0.02, "npc")) +
+    scale_fill_continuous(guide = guide_colorbar(title = 'Days'))
+
+temp_by_year = 
+  ny_noaa_cleaned %>%
+  filter(snow > 0 & snow < 100) %>%
+  group_by(year) %>%
+  ggplot(aes(x = year, y = snow, group = year)) +
+  geom_boxplot(fill = 'grey') + 
+  coord_flip() + 
+  labs(
+    title = 'Snowfall amount by year',
+    y = 'Snowfall (cm)',
+    x = 'Year'
+  )
+
+max_v_min + temp_by_year
 ```
 
