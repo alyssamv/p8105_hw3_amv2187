@@ -18,6 +18,9 @@ theme_set(theme_bw())
 ```
 
 
+
+
+
 ## Problem 1
 
 ```{r}
@@ -31,10 +34,7 @@ brfss_cleaned = brfss_smart2010 %>%
          county = locationdesc)
 
 str(brfss_cleaned)
-```
 
-
-```{r}
 # Which states were observed at 7 locations in 2002?
 brfss_cleaned %>%
   filter(year == 2002) %>%  # filter to only listings in 2002
@@ -42,7 +42,11 @@ brfss_cleaned %>%
   group_by(state) %>% # get distinct locations
   filter(n() == 7) %>%  # state listings that have exactly 7 counties listed
   distinct(state) # get states
+```
 
+According to the data, Connecticut, Florida, and North Carolina were observed at exactly 7 locations. 
+
+```{r}
 # Make a “spaghetti plot” that shows the number of locations in each state from 2002 to 2010.
 brfss_cleaned %>%
   distinct(state, county, year) %>%
@@ -57,8 +61,11 @@ brfss_cleaned %>%
   ) +
   theme(legend.position = 'right')
   # geom_smooth(method = 'loess', se = F, alpha = 0.5)
+```
 
+The above plot shows that most states have less than 10 responding counties in any given year, with a few exceptions. The most counties to respond in one year was 44 in Florida in 2007. 
 
+```{r}
 # Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.
 brfss_cleaned %>%
   filter(year %in% c(2002, 2006, 2010) & 
@@ -68,8 +75,11 @@ brfss_cleaned %>%
   summarise(Average = mean(data_value), 
             'Std Dev' = sd(data_value)) %>%
   knitr::kable(caption = 'Proportion of "Excellent" responses in NY state' )
+```
 
+The average proportion of "Excellent" responses in NY state is pretty similar in 2002, 2006, and 2010, at approximately 23%. The highest proportion of "Excellent" responses occurred in 2002, but it came also with the biggest variation in responses. 
 
+```{r}
 # For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.
 brfss_cleaned %>% 
   group_by(year, state, response) %>%
@@ -88,7 +98,7 @@ brfss_cleaned %>%
 
 ```
 
-
+From the figure, it's clear that most counties respond with "Very Good" over the years, followed by "Good", "Excellent", "Fair", and "Poor". No discernible trends exist; the average proportion of counties that respond any particular way is consistent between 2002-2010. 
 
 
 
@@ -109,18 +119,26 @@ At what time of day do most orders take place?
 ```{r}
 aisles = instacart %>%
   group_by(aisle, department) %>%
-  count %>%
-  arrange(department, n)
+  count %>% # count number of items sold in each aisle
+  ungroup %>%
+  arrange(department, n) %>% # arrange by department and number of items ordered
+  mutate(order = row_number()) # add sort column
 
 aisles %>% filter(n == max(.$n))
 ```  
 
+There are `r nrow(aisles)` aisles in the dataset. The most items are ordered from the produce aisles (fresha and packaged vegetables and fruits). 
+
 ```{r fig.height=12, fig.width=6}
 aisles %>%
-  filter(!(aisle %in% c('missing', 'other'))) %>%
-  ggplot(aes(y = aisle, x = log(n), color = department)) +
+  filter(!(aisle %in% c('missing', 'other'))) %>% # filter uncategorized columns
+  ggplot(aes(y = order, x = log(n), color = department)) +
   geom_point() +
   facet_grid(department ~ ., scales = 'free', space = 'free') + # facet by department
+  scale_y_continuous( # sort aisles by number of items ordered within each department
+    breaks = aisles$order,
+    labels = aisles$aisle
+  ) +
   labs( # set labels
     title = 'Number of items purchased across aisles, by department',
     x = 'Number of items (logarithmic scale)',
@@ -131,21 +149,32 @@ aisles %>%
         strip.text.y = element_text(size = 8, angle = 0)) # make face_grid titles horizontal so they are legible
 ```
 
+The above plot shows the total number of items purchased in each aisle, grouped by department. Number of items was transformed to a logarithmic scale to accomodate the large range of quantities (`r range(aisles$n)`). Produce was the most ordered items, with quantities in the 100,000+ range. i assume this to mean that orders were counted either by individual produce, or by weight (e.g. lbs, oz). Beauty products were the least ordered item.
+
 ```{r}
 instacart %>%
   filter(aisle %in% c('baking ingredients', 'dog food care', 'packaged vegetables fruits')) %>%
   group_by(aisle, product_name) %>%
-  count %>%
+  count %>% 
   arrange(aisle, n) %>%
-  group_by(aisle) %>%
+  group_by(aisle) %>% 
   slice(n()) %>%
+  left_join(., aisles[, c('aisle', 'n')], by = 'aisle') %>%
+  rename('Aisle' = aisle,
+         'Product' = product_name,
+         'Quantity' = n.x,
+         'Total items ordered in aisle' = n.y) %>%
   knitr::kable()
+```
 
+The most-ordered item in the baking ingedients aisle was light brown sugar; in the dog food and care aisle was Snack Sticks Chicken and Rice Dog Treats; and the packaged fruits and vegetables aisles was organic baby spinach. Packaged baby spinach accounts for over 12% of the total number of items ordered from the package vegetables and fruits aisle, while the dog food and brown sugar make up a much smaller portion of the total items sold. 
+
+```{r}
 instacart %>%
   filter(product_name %in% c('Pink Lady Apples', 'Coffee Ice Cream')) %>%
   group_by(order_dow) %>%
   rename('Day of the week' = order_dow) %>%
-  summarise('Average hour of purchase' = round(mean(order_hour_of_day))) %>%
+  summarise('Average hour of purchase' = (mean(order_hour_of_day))) %>%
   knitr::kable(caption = 'Average time of purchase of Pink Lady apples and coffee ice cream')
 ```
 
@@ -162,7 +191,7 @@ data("ny_noaa")
 ny_noaa_cleaned = 
   ny_noaa %>%
   mutate(year = as.numeric(format(date, '%Y')), # split date into three columns (year, month, day)
-         month = month.abb[as.numeric(format(date, '%m'))],
+         month = month.name[as.numeric(format(date, '%m'))],
          day = as.numeric(format(date, '%d')),
          #ny_noaa[, 3:5] <- apply(ny_noaa[, 3:5], MARGIN = 2, function(i){ i/10 }))
          prcp = prcp/10/10, # convert measurements to cm 
@@ -172,12 +201,13 @@ ny_noaa_cleaned =
          tmin = as.numeric(tmin)/10)
 
 ny_noaa_cleaned %>%
-  filter(month %in% c('Jan', 'Jul')) %>%
+  filter(month %in% c('January', 'July')) %>%
   group_by(id, month, year) %>%
   summarise(avg_tmax = mean(tmax, na.rm = T)) %>%
   ggplot(aes(x = year, y = avg_tmax, color = id)) +
   geom_line() +
-  facet_grid(.~month) +
+  #geom_smooth(method = 'lm', color = 'black', size = 0.5) +
+  facet_grid(month~.) +
   labs( # set labels
     title = 'Average maximum temperature',
     x = 'Year',
@@ -189,14 +219,18 @@ ny_noaa_cleaned %>%
   ) +
   theme(axis.text.x = element_text(angle = 60, hjust = 1),
         legend.position = 'none') # no legend (not necessary with facet_grid)
+```
+
+The above figure represents the average maximum temperature across all stations in January and July each year from 1980-2010. While there are no obvious trends over time (the average maximum temperature in January 1980 and January 2010 are comparable), there does appear to be an oscillatory pattern. Temperature will climb and fall again, and this pattern repeats over time. It's also worth noting that this pattern lines up across months, that is, a warmer January corresopnds with a warmer July. But the magnitude of the temperature change from previous years is not necessarily reflected. There seems to be a larger range of maximum temperatures in January of any given year than in July, and the trends over time vary to a larger extend as well. 
 
 
+```{r}
 max_v_min = 
   ggplot(ny_noaa_cleaned, aes(x = tmin, y = tmax)) +
     geom_hex() +
     scale_y_continuous(limits = c(-60, 60)) + # set y-axis range to match x-axis range
     labs( # set labels
-      title = 'Daily temperature 1980-2010',
+      title = '(a) Daily temperature 1980-2010',
       x = 'Minimum temperature (Celsius)',
       y = 'Maximum temperature (Celsius)'
     ) + 
@@ -214,11 +248,16 @@ temp_by_year =
   geom_boxplot(fill = 'grey') + 
   coord_flip() + 
   labs(
-    title = 'Snowfall amount by year',
+    title = '(b) Snowfall amount by year',
     y = 'Snowfall (cm)',
     x = 'Year'
   )
 
 max_v_min + temp_by_year
 ```
+
+In plot (a) above, we can see that in general, the average minimum temperature is fairly close to the average maximum temperature (the relationship has a positive correlation). There are some outliers where the minimum temperature is notably lower than the maximum. We would need to do a weather station-specific and/or date-specific analysis to understand the nature of these outliers. 
+
+In plot (b), we see that the average snowfall is close to zero. This makes sense given that the plot includes measures across all months including summer, which also explains the high number of apparent outliers. 
+
 
