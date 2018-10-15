@@ -175,13 +175,15 @@ The most-ordered item was light brown sugar in the baking ingedients aisle; Snac
 ```{r}
 instacart %>%
   filter(product_name %in% c('Pink Lady Apples', 'Coffee Ice Cream')) %>%
-  group_by(order_dow) %>%
-  rename('Day of the week' = order_dow) %>%
-  summarise('Average hour of purchase' = (mean(order_hour_of_day))) %>%
+  group_by(product_name, order_dow) %>%
+  rename('Day of the week' = order_dow,
+         ' ' = product_name) %>%
+  summarise('Average hour of purchase' = (round(mean(order_hour_of_day)))) %>%
+  spread('Day of the week', 'Average hour of purchase') %>%
   knitr::kable(caption = 'Average time of purchase of Pink Lady apples and coffee ice cream')
 ```
 
-
+In general, it seems that pink lady apples are purchased earlier in the day than coffee ice cream by a couple of hours. 
 
 
 
