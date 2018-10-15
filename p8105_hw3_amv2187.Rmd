@@ -72,8 +72,8 @@ brfss_cleaned %>%
          response == 'Excellent' & 
          state == 'NY') %>% 
   group_by(year) %>%
-  summarise(Average = mean(data_value), 
-            'Std Dev' = sd(data_value)) %>%
+  summarise('Average proportion of "Excellent" responses' = mean(data_value), 
+            'Standard Dev' = sd(data_value)) %>%
   knitr::kable(caption = 'Proportion of "Excellent" responses in NY state' )
 ```
 
@@ -245,9 +245,10 @@ The above figure represents the average maximum temperature across all stations 
 max_v_min = 
   ggplot(ny_noaa_cleaned, aes(x = tmin, y = tmax)) +
     geom_hex() +
+    geom_abline(slope = 1, intercept = 0) +
     scale_y_continuous(limits = c(-60, 60)) + # set y-axis range to match x-axis range
     labs( # set labels
-      title = '(a) Daily temperature 1980-2010',
+      title = '(a) Daily temperature 1981-2010',
       x = 'Minimum temperature (Celsius)',
       y = 'Maximum temperature (Celsius)'
     ) + 
@@ -256,6 +257,7 @@ max_v_min =
           legend.background = element_rect(color = "black", size = 0.2, linetype = "solid"),
           legend.key.size = unit(0.02, "npc")) +
     scale_fill_continuous(guide = guide_colorbar(title = 'Days'))
+  
 
 temp_by_year = 
   ny_noaa_cleaned %>%
@@ -273,8 +275,40 @@ temp_by_year =
 max_v_min + temp_by_year
 ```
 
-In plot (a) above, we can see that in general, the average minimum temperature is fairly close to the average maximum temperature (the relationship has a positive correlation). There are some outliers where the minimum temperature is notably lower than the maximum. We would need to do a weather station-specific and/or date-specific analysis to understand the nature of these outliers. 
+In plot (a) above, we can see that in general, the average minimum temperature is fairly close to the average maximum temperature (the relationship has a positive correlation). There are some outliers where the minimum temperature is notably lower than the maximum. Conversely, there appears to be many values (`r ny_noaa_cleaned %>% filter(tmin > tmax) %>% nrow`) where the maximum temperature is puportedly lower than the minimum temperature (values to the right of the diagonal line. 
 
 In plot (b), we see that the average snowfall is close to zero. This makes sense given that the plot includes measures across all months including summer, which also explains the high number of apparent outliers. 
 
 
+Below are visuals of time-specific trends in average daily temperature range, by year and by month. 
+```{r}
+# Plot showing temperature ranges by year
+ggplot(ny_noaa_cleaned, aes(x = tmin, y = tmax)) +
+  geom_hex() +
+  geom_abline(slope = 1, intercept = 0) +
+  scale_y_continuous(limits = c(-60, 60)) + # set y-axis range to match x-axis range
+  facet_wrap(.~year) +
+  labs( # set labels
+      title = 'Daily temperature range by year 1981-2010',
+      x = 'Minimum temperature (Celsius)',
+      y = 'Maximum temperature (Celsius)'
+  ) + 
+  scale_fill_continuous(guide = guide_colorbar(title = 'Days'))
+
+# Temperature range by month of the year, across all years
+ny_noaa_cleaned %>%
+  mutate(month = factor(month, levels = month.name)) %>% # relevel month column to render in order
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex() +
+  geom_abline(slope = 1, intercept = 0) +
+  scale_y_continuous(limits = c(-60, 60)) + # set y-axis range to match x-axis range
+  facet_wrap(.~month) +
+  labs( # set labels
+      title = 'Daily temperature range by month',
+      x = 'Minimum temperature (Celsius)',
+      y = 'Maximum temperature (Celsius)'
+  ) + 
+  scale_fill_continuous(guide = guide_colorbar(title = 'Days'))
+```
+
+According to the figures, the trends within any given year don't vary much over time. However, we can see that daily temperature varies more in winter months than it does in the summer months. 
