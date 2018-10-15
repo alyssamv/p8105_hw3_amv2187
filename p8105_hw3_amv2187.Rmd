@@ -88,13 +88,12 @@ brfss_cleaned %>%
   geom_line(alpha = 0.5) +
   facet_grid(~response) + 
   labs(
-    title = 'Average proportion of responses',
+    title = 'Average proportion of responses across state',
     y = 'Average proportion of responses',
     x = 'Year'
   ) + 
   theme(axis.text.x = element_text(angle = 60, hjust = 1),
-        legend.position = "bottom") +
-  guides(colour = guide_legend(nrow = 4, byrow = T)) 
+        legend.position = "none") 
 
 ```
 
@@ -131,7 +130,7 @@ aisles = instacart %>%
 aisles %>% filter(n == max(.$n))
 ```  
 
-There are `r nrow(aisles)` aisles in the dataset. The most items are ordered from the produce aisles (fresha and packaged vegetables and fruits). 
+There are `r nrow(aisles)` aisles in the dataset. The most items are ordered from the produce aisles (fresh and packaged vegetables and fruits). 
 
 ```{r fig.height=12, fig.width=6}
 aisles %>%
@@ -153,7 +152,7 @@ aisles %>%
         strip.text.y = element_text(size = 8, angle = 0)) # make face_grid titles horizontal so they are legible
 ```
 
-The above plot shows the total number of items purchased in each aisle, grouped by department. Number of items was transformed to a logarithmic scale to accomodate the large range of quantities (`r range(aisles$n)`). Produce was the most ordered items, with quantities in the 100,000+ range. i assume this to mean that orders were counted either by individual produce, or by weight (e.g. lbs, oz). Beauty products were the least ordered item.
+The above plot shows the total number of items purchased in each aisle, grouped by department. Number of items was transformed to a logarithmic scale to accomodate the large range of quantities (`r range(aisles$n)`). Produce was the most ordered items, with quantities in the 100,000+ range. I assume this to mean that orders were counted either by individual produce, or by weight (e.g. lbs, oz). Beauty products were the least ordered item.
 
 ```{r}
 instacart %>%
@@ -171,7 +170,7 @@ instacart %>%
   knitr::kable()
 ```
 
-The most-ordered item in the baking ingedients aisle was light brown sugar; in the dog food and care aisle was Snack Sticks Chicken and Rice Dog Treats; and the packaged fruits and vegetables aisles was organic baby spinach. Packaged baby spinach accounts for over 12% of the total number of items ordered from the package vegetables and fruits aisle, while the dog food and brown sugar make up a much smaller portion of the total items sold. 
+The most-ordered item was light brown sugar in the baking ingedients aisle; Snack Sticks Chicken and Rice Dog Treats in the dog food and care aisle; and organic baby spinach in the packaged fruits and vegetables aisles. Packaged baby spinach accounts for over 12% of the total number of items ordered from the package vegetables and fruits aisle, while the dog food and brown sugar make up a much smaller portion of the total items sold. 
 
 ```{r}
 instacart %>%
@@ -204,6 +203,20 @@ ny_noaa_cleaned =
          tmax = as.numeric(tmax)/10, # convert temperature to degrees Celsius
          tmin = as.numeric(tmin)/10)
 
+apply(ny_noaa_cleaned[, 3:7], FUN = summary, MARGIN = 2)[7, ] / nrow(ny_noaa_cleaned) # proportion of rows that are NA for each variable
+
+# check to see what trends exist for missing temperature data
+ny_noaa_cleaned %>%
+  filter(is.na(tmin)) %>%
+  group_by(id) %>%
+  count %>%
+  arrange(desc(n))
+```
+
+The NOAA data contains weather information for a given day across many different weather stations. Data in the dataset is specific to New York weather stations between 1981 and 2010. Specifically, we have information about the amount of precipitation, snowfall, snow accumulation, and the maximum and minimum temperatures in any given day. It's a large dataset, with `r nrow(ny_noaa_cleaned)` entries across `r length(unique(ny_noaa_cleaned$id))` stations over 30 years. There is a fair amount of missing data, mostly for the temperature variables - nearly half (43.7%) of entries are missing information about the daily temperature range. The number of missing entries appears to vary quite a bit by station, with some stations missing only 1 day, and others without any data; for example, station USC00304772 doesn't have any temperature data over the 30-year period. 
+
+
+```{r}
 ny_noaa_cleaned %>%
   filter(month %in% c('January', 'July')) %>%
   group_by(id, month, year) %>%
@@ -225,7 +238,7 @@ ny_noaa_cleaned %>%
         legend.position = 'none') # no legend (not necessary with facet_grid)
 ```
 
-The above figure represents the average maximum temperature across all stations in January and July each year from 1980-2010. While there are no obvious trends over time (the average maximum temperature in January 1980 and January 2010 are comparable), there does appear to be an oscillatory pattern. Temperature will climb and fall again, and this pattern repeats over time. It's also worth noting that this pattern lines up across months, that is, a warmer January corresopnds with a warmer July. But the magnitude of the temperature change from previous years is not necessarily reflected. There seems to be a larger range of maximum temperatures in January of any given year than in July, and the trends over time vary to a larger extend as well. 
+The above figure represents the average maximum temperature across all stations in January and July each year from 1981-2010. While there are no obvious trends over time (the average maximum temperature in January 1981 and January 2010 are comparable), there does appear to be an oscillatory pattern. Temperature will climb and fall again, and this pattern repeats over time. It's also worth noting that this pattern lines up across months, that is, a warmer January corresopnds with a warmer July. But the magnitude of the temperature change from previous years is not necessarily reflected. There seems to be a larger range of maximum temperatures in January of any given year than in July, and the trends over time vary to a larger extend as well. 
 
 
 ```{r}
